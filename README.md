@@ -199,7 +199,35 @@ curl -X POST http://127.0.0.1:8000/api/runs \
 - MCP adapters run only through the approval gate.
 - Reject writes nothing; a second approve does not duplicate the notes block.
 
-## Tests
+## Deploy (Render, free tier)
+
+The repo ships a `Dockerfile` (single container, no database). Render's **Free**
+compute plan ($0, no credit card) runs it with these caveats: it spins down
+after 15 min idle (first request cold-starts ~1 min), and free services **cannot
+attach a persistent disk**, so `output/` lives only while the instance runs —
+download approved files during your session.
+
+Steps:
+
+1. Push the repo to GitHub (see below), then sign up at <https://render.com>.
+2. **New → Web Service** → connect the repo. Render detects the `Dockerfile`.
+3. Choose the **Free** compute plan.
+4. **Environment** (from `console.groq.com` for a $0 LLM bill):
+
+   | Key | Value |
+   | --- | --- |
+   | `OPENAI_API_KEY` | `gsk_...` |
+   | `OPENAI_BASE_URL` | `https://api.groq.com/openai/v1` |
+   | `OPENAI_MODEL` | `llama-3.3-70b-versatile` |
+
+5. Deploy → open the URL → health check `GET /health`. Set the dashboard
+   **health check path** to `/health` (optional).
+
+The container listens on `0.0.0.0:$PORT` (Render sets `PORT`, default 10000).
+Do **not** add a payment method — Render suspends free services instead of
+billing if you exceed the included bandwidth (5 GB/month).
+
+Run tests before pushing:
 
 ```bash
 pytest
