@@ -1,0 +1,86 @@
+Problem Statement
+Build an AI workflow that transforms raw customer feedback for the Groww app into a structured internal update and a ready-to-use customer communication.
+Your system should:
+Analyze recent user reviews to identify key product issues and themes
+Detect a frequently misunderstood fee/charge from those insights
+Generate:
+A weekly internal product pulse
+A standardized explanation for that specific fee
+Finally, use MCP (with approval gating) to log and share this output across internal tools.
+The goal is to simulate a real Product + Support workflow where:
+Product teams track user sentiment
+Support teams proactively create clear explanations for recurring confusion
+What You Must Build
+Step 1 — Review Intelligence Layer
+Input:
+1 public reviews CSV (last 8–12 weeks)
+Your system must:
+Cluster reviews into max 5 themes
+Identify top 3 themes
+Extract 3 real user quotes
+Highlight 1 recurring confusion/pain point related to a fee/charge
+Step 2 — Weekly Product Pulse (Internal Output)
+Using the insights above, generate a ≤250-word structured weekly note:
+Summary of top themes
+Supporting user quotes
+Key observation (what’s going wrong / trending)
+3 action ideas for the product team
+Step 3 — Fee Explainer (Derived from Insights)
+Using the identified confusion from Step 1, generate a structured explanation:
+≤6 bullet points explaining the fee clearly
+Written in a neutral, facts-only tone
+Include 2 official source links
+Add: “Last checked: ”
+Important: This is not a random scenario. It must directly connect to what users are confused about in reviews.
+Required MCP Actions (Approval-Gated)
+Once both outputs are generated:
+1. Append to Notes/Doc
+{
+date,
+top_themes,
+weekly_pulse,
+identified_fee_issue,
+explanation_bullets,
+source_links
+}
+2. Create Email Draft
+Subject: Weekly Product Pulse + Customer Clarification —
+Body:
+Weekly product pulse
+Fee explanation (as a reusable support snippet)
+(No auto-send)
+How to Implement MCP
+You can use any of the following:
+A tool like Zapier or Make
+Function calling with an LLM
+A simple simulated approval step (button or input prompt)
+Minimum requirement:
+Show a user approval step before taking any action
+After approval:
+Append output to a document (e.g., Google Docs or Notion)
+Create an email draft (e.g., Gmail)
+Example:
+Reviews mention confusion about “exit load being charged unexpectedly”
+→ Theme: Pricing confusion
+→ Fee issue: Exit load misunderstanding
+→ Output: Weekly pulse + exit load explanation + saved to doc + email draft
+Deliverables
+Working prototype link or ≤3-min demo video
+Weekly product pulse (MD/PDF/Doc)
+Notes/Doc snippet showing appended entry
+Email draft screenshot/text
+Reviews CSV sample
+Source list (4–6 URLs)
+README:
+How to run
+Where MCP approval happens
+What fee issue was identified from reviews
+Skills Being Tested
+✔ Insight extraction from unstructured data
+✔ Theme clustering + signal detection
+✔ Connecting insights → communication
+✔ Controlled summarization
+✔ Structured explanation generation
+✔ Workflow orchestration
+✔ MCP tool calling + approval gating
+

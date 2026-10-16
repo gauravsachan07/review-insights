@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Insights</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --line: #e3e6ea; --ink: #1b2430;
+    --muted: #66707c; --accent: #2f6fed; --ok: #1a7f4b; --bad: #c0392b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 16px 24px; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  ol.steps { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; }
+  ol.steps li {
+    padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+    background: var(--bg); color: var(--muted); font-size: 13px;
+  }
+  ol.steps li.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  ol.steps li.done { background: #e8f0ff; border-color: #c8daff; color: var(--accent); }
+  main { max-width: 900px; margin: 24px auto; padding: 0 16px 48px; }
+  .step h2 { margin-top: 0; font-size: 20px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button {
+    font: inherit; padding: 9px 16px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { background: #fff; border-color: var(--bad); color: var(--bad); }
+  .status { color: var(--muted); }
+  .error {
+    background: #fdecea; border: 1px solid #f5c6c0; color: var(--bad);
+    padding: 12px; border-radius: 8px; white-space: pre-wrap;
+  }
+  .notice { background: #fff8e6; border: 1px solid #f0dca0; padding: 12px; border-radius: 8px; }
+  .muted { color: var(--muted); }
+  .badge {
+    background: #e8f0ff; color: var(--accent); border-radius: 999px;
+    font-size: 11px; padding: 2px 8px; margin-left: 6px; vertical-align: middle;
+  }
+  ul.themes { list-style: none; margin: 0; padding: 0; }
+  ul.themes li { padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; }
+  ul.themes li.top { border-color: var(--accent); background: #f5f9ff; }
+  ul.themes p { margin: 4px 0 2px; }
+  blockquote {
+    margin: 0 0 8px; padding: 10px 14px; border-left: 3px solid var(--accent);
+    background: var(--bg); border-radius: 0 8px 8px 0;
+  }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .count { font-weight: 600; color: var(--accent); }
+  pre.json {
+    background: #0f172a; color: #d7e3f4; padding: 12px; border-radius: 8px;
+    overflow-x: auto; font-size: 13px; max-height: 320px;
+  }
+  table.logs { width: 100%; border-collapse: collapse; }
+  table.logs th, table.logs td {
+    text-align: left; padding: 8px; border-bottom: 1px solid var(--line);
+    font-size: 14px; vertical-align: top;
+  }
+  .ok { color: var(--ok); font-weight: 600; }
+  .fail { color: var(--bad); font-weight: 600; }
+  ul.bullets { margin: 6px 0; padding-left: 20px; }
+  .fee-empty {
+    border: 1px dashed var(--line); border-radius: 8px; padding: 14px;
+    color: var(--muted); text-align: center;
+  }
+  .actions { display: flex; gap: 10px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Review Insights</h1>
+  <ol class="steps" id="step-indicator">
+    <li data-step="1" class="active">1. Load</li>
+    <li data-step="2">2. Insights</li>
+    <li data-step="3">3. Approve</li>
+  </ol>
+</header>
+
+<main>
+  <!-- STEP 1: LOAD -->
+  <section id="step-1" class="step">
+    <div class="card">
+      <h2>1. Load reviews</h2>
+      <p>Use the shipped sample CSV (<code>data/reviews.csv</code>) or upload your own with columns <code>review_id,text,rating,date,source</code>.</p>
+      <div class="row">
+        <label><input type="radio" name="source" id="src-sample" checked> Use sample CSV</label>
+        <label><input type="radio" name="source" id="src-upload"> Upload a file</label>
+        <input type="file" id="csv-file" accept=".csv" disabled>
+        <button class="primary" id="btn-run">Run analysis</button>
+      </div>
+      <p class="status" id="load-status" hidden></p>
+      <div class="error" id="error-box" hidden></div>
+    </div>
+  </section>
+
+  <!-- STEP 2: INSIGHTS -->
+  <section id="step-2" class="step" hidden>
+    <div class="card">
+      <h2>2. Insights</h2>
+      <div class="row muted" id="run-meta"></div>
+    </div>
+
+    <div class="card">
+      <h3>Themes <span class="muted" id="theme-meta"></span></h3>
+      <ul class="themes" id="theme-list"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Quotes</h3>
+      <div id="quote-list"></div>
+    </div>
+
+    <div class="card">
+      <h3>Fee issue</h3>
+      <div id="fee-card"></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Weekly pulse <span class="count" id="pulse-count"></span></h3>
+        <pre id="pulse-body" style="white-space:pre-wrap; font: inherit;"></pre>
+      </div>
+      <div class="card">
+        <h3>Fee explainer <span class="count" id="explainer-count"></span></h3>
+        <div id="explainer-body"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>MCP payload preview</h3>
+      <pre class="json" id="payload-json"></pre>
+    </div>
+
+    <div class="actions">
+      <button id="btn-back-1">Back</button>
+      <button class="primary" id="btn-next-3">Continue to approval</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: APPROVE -->
+  <section id="step-3" class="step" hidden>
+    <div class="card">
+      <h2>3. Approve</h2>
+      <div class="notice">
+        <strong>Approve</strong> appends a dated block to <code>output/notes.md</code>
+        and writes an email <strong>draft</strong> to <code>output/email-draft.md</code>.
+        Nothing is ever sent — there is no send API.<br>
+        <strong>Reject</strong> is a no-op: no files are written.
+      </div>
+      <div class="actions">
+        <button class="primary" id="btn-approve">Approve</button>
+        <button class="danger" id="btn-reject">Reject</button>
+        <button id="btn-back-2">Back</button>
+      </div>
+      <div class="status" id="decision-status" hidden></div>
+      <div class="error" id="decision-error" hidden></div>
+    </div>
+
+    <div class="card" id="logs-card" hidden>
+      <h3>Tool logs</h3>
+      <table class="logs">
+        <thead><tr><th>Tool</th><th>Result</th><th>Location / error</th></tr></thead>
+        <tbody id="log-rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
