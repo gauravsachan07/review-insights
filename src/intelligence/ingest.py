@@ -28,11 +28,11 @@ def _parse_date(raw: str | None):
     raw = raw.strip()
     if not raw:
         return None
-    from datetime import date
+    from datetime import datetime
 
     for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%m/%d/%Y"):
         try:
-            return date.strptime(raw, fmt)
+            return datetime.strptime(raw, fmt).date()
         except ValueError:
             continue
     return None

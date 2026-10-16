@@ -1,4 +1,5 @@
 from datetime import date
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -150,3 +151,33 @@ def test_api_run_endpoints(monkeypatch, tmp_path) -> None:
 
     assert client.post(f"/api/runs/{failed.id}/approve").status_code == 409
     assert client.post(f"/api/runs/{failed.id}/reject").status_code == 409
+
+
+def test_api_run_accepts_uploaded_csv(monkeypatch, tmp_path) -> None:
+    monkeypatch.setattr(orchestrator, "OUTPUT_DIR", tmp_path)
+    monkeypatch.setattr(orchestrator, "RUNS_DIR", tmp_path / "runs")
+
+    captured: dict = {}
+    real_start = orchestrator.start_run
+
+    def fake_start(csv_path, **kwargs):
+        captured["csv_path"] = csv_path
+        captured["contents"] = Path(csv_path).read_text(encoding="utf-8-sig")
+        return real_start(chat_fn=fake_chat)
+
+    monkeypatch.setattr(orchestrator, "start_run", fake_start)
+
+    client = TestClient(app)
+    csv_bytes = orchestrator.SAMPLE_CSV.read_bytes()
+    response = client.post(
+        "/api/runs",
+        files={"file": ("reviews.csv", csv_bytes, "text/csv")},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "ready_for_approval"
+    assert "review_id" in captured["contents"]
+    assert not Path(captured["csv_path"]).exists()  # temp file cleaned up
+
+    missing = client.post("/api/runs", data={"use_sample": "false"})
+    assert missing.status_code == 400

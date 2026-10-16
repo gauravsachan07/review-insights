@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.concurrency import run_in_threadpool
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from src import orchestrator
 from src.intelligence.ingest import load_reviews
@@ -55,7 +56,7 @@ async def create_run(request: Request) -> dict:
     ):
         form = await request.form()
         upload = form.get("file")
-        if isinstance(upload, UploadFile) and upload.filename:
+        if isinstance(upload, StarletteUploadFile) and upload.filename:
             data = await upload.read()
             fd, temp_path = tempfile.mkstemp(suffix=".csv")
             with os.fdopen(fd, "wb") as fh:
