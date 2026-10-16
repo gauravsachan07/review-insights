@@ -181,10 +181,34 @@ async function decide(action) {
   }
 }
 
+function renderArtifacts(run) {
+  const written = (run.logs || []).filter((log) => log.ok);
+  const names = {
+    append_notes: "notes.md",
+    create_email_draft: "email-draft.md",
+  };
+  const items = written
+    .filter((log) => names[log.tool])
+    .map((log) => {
+      const slug = log.tool === "append_notes" ? "notes" : "email-draft";
+      const base = "/api/runs/" + encodeURIComponent(run.id) + "/artifacts/" + slug;
+      return (
+        "<li><strong>" + esc(names[log.tool]) + "</strong>" +
+        '<a href="' + base + '" target="_blank" rel="noopener">View</a>' +
+        '<a href="' + base + '?download=true">Download</a></li>'
+      );
+    });
+
+  $("artifact-list").innerHTML =
+    items.join("") || '<li class="muted">No files were written.</li>';
+  $("artifacts-card").hidden = items.length === 0;
+}
+
 function renderLogs(run, action) {
   if (action === "reject") {
     $("decision-status").textContent =
       "Rejected — no files were written. New notes block: none.";
+    $("artifacts-card").hidden = true;
   } else if (run.status === "approved") {
     $("decision-status").textContent =
       "Approved — notes and email draft written.";
@@ -192,6 +216,8 @@ function renderLogs(run, action) {
     $("decision-status").textContent =
       "Approve incomplete — see the failed tool below and approve again to retry it.";
   }
+
+  renderArtifacts(run);
 
   const logs = run.logs || [];
   $("logs-card").hidden = logs.length === 0;

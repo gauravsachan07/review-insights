@@ -166,3 +166,29 @@ def test_api_approve_and_reject(monkeypatch, tmp_path) -> None:
         else None
     )
     assert notes_after == notes_before
+
+
+def test_api_artifacts_view_and_download(monkeypatch, tmp_path) -> None:
+    _isolate(monkeypatch, tmp_path)
+    orchestrator.save_run(make_run(run_id="art1"))
+
+    client = TestClient(app)
+
+    blocked = client.get("/api/runs/art1/artifacts/notes")
+    assert blocked.status_code == 409
+
+    client.post("/api/runs/art1/approve")
+
+    view = client.get("/api/runs/art1/artifacts/notes")
+    assert view.status_code == 200
+    assert "Exit load confusion" in view.text
+    assert "attachment" not in view.headers.get("content-disposition", "")
+
+    download = client.get("/api/runs/art1/artifacts/email-draft?download=true")
+    assert download.status_code == 200
+    assert "attachment" in download.headers["content-disposition"]
+    assert "DRAFT" in download.text
+
+    assert client.get("/api/runs/art1/artifacts/secrets").status_code == 404
+    assert client.get("/api/runs/art1/artifacts/..%2Fnotes.md").status_code == 404
+    assert client.get("/api/runs/missing/artifacts/notes").status_code == 404

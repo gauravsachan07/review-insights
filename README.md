@@ -109,9 +109,9 @@ Open <http://127.0.0.1:8000/>. Health check: `GET /health` → `{"ok": true}`.
    quotes, the fee card, the weekly pulse (word count) and the fee explainer
    (bullet count), plus the MCP payload JSON preview.
 3. **Continue to approval** → read the notice → **Approve** or **Reject**.
-4. On **Approve**, open `output/notes.md` (appended, dated block) and
-   `output/email-draft.md` (a draft — never sent). Tool-log locations appear in
-   the UI.
+4. On **Approve**, the **Written files** card shows **View** / **Download** links
+   for `output/notes.md` (appended, dated block) and `output/email-draft.md`
+   (a draft — never sent). Tool-log locations appear in the UI.
 5. Optional: start a **new run** and **Reject** to prove no files are written.
 
 ## Where the MCP approval happens
@@ -182,6 +182,11 @@ review-insights/
 | GET | `/api/runs/{id}` | run snapshot (status, artifacts, logs) |
 | POST | `/api/runs/{id}/approve` | gate: writes notes + email draft |
 | POST | `/api/runs/{id}/reject` | gate: no file writes |
+| GET | `/api/runs/{id}/artifacts/notes` | view `notes.md` (after approval) |
+| GET | `/api/runs/{id}/artifacts/email-draft?download=true` | view / download `email-draft.md` |
+
+Only the two known artifacts are served, and only once the matching MCP tool
+logged success for that run — there is no arbitrary file access.
 
 Sample-run smoke test:
 

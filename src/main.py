@@ -99,6 +99,44 @@ def read_run(run_id: str) -> dict:
     return run.model_dump(mode="json")
 
 
+ARTIFACTS = {
+    "notes": ("notes.md", gate.TOOL_NOTES),
+    "email-draft": ("email-draft.md", gate.TOOL_EMAIL),
+}
+
+
+@app.get("/api/runs/{run_id}/artifacts/{name}", include_in_schema=False)
+def read_artifact(run_id: str, name: str, download: bool = False) -> FileResponse:
+    """Serve an approved run's output file (view or download).
+
+    Only the two known artifacts are reachable, and only after the matching
+    MCP tool logged success for this run — there is no arbitrary file access.
+    """
+    run = orchestrator.get_run(run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="Run not found.")
+
+    entry = ARTIFACTS.get(name)
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Unknown artifact.")
+    filename, tool = entry
+
+    if not any(log.tool == tool and log.ok for log in run.logs):
+        raise HTTPException(
+            status_code=409, detail="Artifact not written yet; approve the run first."
+        )
+
+    path = orchestrator.OUTPUT_DIR / filename
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Artifact file not found on disk.")
+
+    return FileResponse(
+        path,
+        media_type="text/markdown; charset=utf-8",
+        filename=filename if download else None,
+    )
+
+
 @app.post("/api/runs/{run_id}/approve")
 def approve_run(run_id: str) -> dict:
     run = orchestrator.get_run(run_id)

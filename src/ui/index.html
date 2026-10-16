@@ -76,6 +76,13 @@
   .ok { color: var(--ok); font-weight: 600; }
   .fail { color: var(--bad); font-weight: 600; }
   ul.bullets { margin: 6px 0; padding-left: 20px; }
+  ul.artifacts { list-style: none; margin: 0; padding: 0; }
+  ul.artifacts li {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+    padding: 8px 0; border-bottom: 1px solid var(--line);
+  }
+  ul.artifacts a { color: var(--accent); text-decoration: none; }
+  ul.artifacts a:hover { text-decoration: underline; }
   .fee-empty {
     border: 1px dashed var(--line); border-radius: 8px; padding: 14px;
     color: var(--muted); text-align: center;
@@ -171,6 +178,12 @@
       </div>
       <div class="status" id="decision-status" hidden></div>
       <div class="error" id="decision-error" hidden></div>
+    </div>
+
+    <div class="card" id="artifacts-card" hidden>
+      <h3>Written files</h3>
+      <p class="muted">These files live in <code>output/</code>. On a host without a persistent disk they exist only while this instance is running — view or download them now.</p>
+      <ul class="artifacts" id="artifact-list"></ul>
     </div>
 
     <div class="card" id="logs-card" hidden>
